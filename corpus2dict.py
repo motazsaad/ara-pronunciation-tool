@@ -14,7 +14,7 @@ parser.add_argument('-s', '--s-tag', action='store_true',
 
 
 def corpus2dictionary(corpus, project_name):
-    dict = {}
+    pronunciation_dict = {}
     phones_list = list()
     repeated_words = 0
     for line in corpus:
@@ -26,7 +26,7 @@ def corpus2dictionary(corpus, project_name):
         for word in words:
             if word == '-':
                 phonetic = 'SIL'
-                dict[word] = phonetic
+                pronunciation_dict[word] = phonetic
             else:
                 u1, u2, dic = phonetise_Arabic.my_phonetise(word)
                 if len(u2) > 1:
@@ -34,20 +34,20 @@ def corpus2dictionary(corpus, project_name):
                 phonetic = ' '.join(u2).replace('sil', '').strip()
                 if len(phonetic.replace(' ', '')) < len(word):
                     phonetic = ' '.join(list(phonetise_Arabic.arabicToBuckwalter(word)))
-                if word in dict:
-                    if dict[word] != phonetic:
+                if word in pronunciation_dict:
+                    if pronunciation_dict[word] != phonetic:
                         repeated_words += 1
-                if word not in dict:
-                    dict[word] = phonetic
+                if word not in pronunciation_dict:
+                    pronunciation_dict[word] = phonetic
             for ph in phonetic.split():
                 if ph not in phones_list:
                     phones_list.append(ph)
 
-    sorted_dict = sorted(dict.items(), key=operator.itemgetter(1))
+    sorted_dict = sorted(pronunciation_dict.items(), key=operator.itemgetter(1))
     phones_list = sorted(phones_list)
 
     with open(project_name + '.dic', mode='w', encoding='utf-8') as dict_writer:
-        for w, ph in dict.items():
+        for w, ph in pronunciation_dict.items():
             dict_writer.write(w + "\t\t" + ph)
             dict_writer.write('\n')
 
