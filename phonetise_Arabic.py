@@ -773,3 +773,4 @@ if __name__ == '__main__':
 
     # Sort Dictionary
     os.system("python sortandfilter.py dict")
+    print('done!')

@@ -10,6 +10,9 @@ Modifications mainly make the code in https://github.com/nawarhalabi/Arabic-Phon
 
 ```
 python phonetise_Arabic.py nawar_corpus_tashkeel.txt
+
+python dict2cmudict.py -i dict -p nawar_bw
+
 ```  
 
  
