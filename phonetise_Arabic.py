@@ -3,8 +3,10 @@
 
 import os
 import re
-import sys
-from nawar_phonotizer import findstress
+
+import findstress
+
+import argparse
 
 buckwalter = {  # mapping from Arabic script to Buckwalter
     u'\u0628': u'b', u'\u0630': u'*', u'\u0637': u'T', u'\u0645': u'm',
@@ -73,7 +75,7 @@ unambiguousConsonantMap = {
 
 ambiguousConsonantMap = {
     u'l': [u'l', u''], u'w': u'w', u'y': u'y', u'p': [u't', u'']
-# These consonants are only unambiguous in certain contexts
+    # These consonants are only unambiguous in certain contexts
 }
 
 maddaMap = {
@@ -472,7 +474,6 @@ def phonetise(text):
     return utterances_pronunciations_with_boundaries, utterances_pronunciations, result
 
 
-
 def my_phonetise(text):
     utterances = text.splitlines()
     result = ''  # Pronunciations Dictionary
@@ -490,8 +491,8 @@ def my_phonetise(text):
             '')  # Add empty entry that will hold this utterance's pronuncation
 
         utterance = arabicToBuckwalter(utterance)
-        #print(u"phoetising utterance")
-        #print(utterance)
+        # print(u"phoetising utterance")
+        # print(utterance)
         # Do some normalisation work and split utterance to words
         utterance = utterance.replace(u'AF', u'F')
         utterance = utterance.replace(u'\u0640', u'')
@@ -558,15 +559,15 @@ def my_phonetise(text):
                         emphaticContext = True
                     # ----------------------------------------------------------------------------------------------------------------
                     # ----------------------------------------------------------------------------------------------------------------
-                    if (
-                                letter in unambiguousConsonantMap):  # Unambiguous consonant phones. These map to a predetermined phoneme
+                    if letter in unambiguousConsonantMap:  # Unambiguous consonant phones. These map to a predetermined phoneme
                         phones += [unambiguousConsonantMap[letter]]
                     # ----------------------------------------------------------------------------------------------------------------
                     if letter == u'l':  # Lam is a consonant which requires special treatment
-                        if ((not letter1 in diacritics and not letter1 in vowelMap) and letter2 in [u'~'] and (
-                                    (letter_1 in [u'A', u'l', u'b']) or (
-                                                letter_1 in diacritics and letter_2 in [u'A', u'l',
-                                                                                        u'b']))):  # Lam could be omitted in definite article (sun letters)
+                        if ((not letter1 in diacritics and not letter1 in vowelMap)
+                            and letter2 in [u'~']
+                            and ((letter_1 in [u'A', u'l', u'b']) or (
+                            # Lam could be omitted in definite article (sun letters)
+                                            letter_1 in diacritics and letter_2 in [u'A', u'l', u'b']))):
                             phones += [ambiguousConsonantMap[u'l'][1]]  # omit
                         else:
                             phones += [ambiguousConsonantMap[u'l'][0]]  # do not omit
@@ -588,8 +589,9 @@ def my_phonetise(text):
                             phones += [ambiguousConsonantMap[u'p'][1]]
                     # ----------------------------------------------------------------------------------------------------------------
                     if letter in vowelMap:
-                        if (letter in [u'w',
-                                       u'y']):  # Waw and Ya are complex they could be consonants or vowels and their gemination is complex as it could be a combination of a vowel and consonants
+                        # Waw and Ya are complex they could be consonants or vowels and their gemination is complex as
+                        # it could be a combination of a vowel and consonants
+                        if (letter in [u'w', u'y']):
                             if (letter1 in diacriticsWithoutShadda + [u'A', u'Y'] or (
                                             letter1 in [u'w', u'y'] and not letter2 in diacritics + [u'A', u'w',
                                                                                                      u'y']) or (
@@ -642,8 +644,7 @@ def my_phonetise(text):
                                     phones += [vowelMap[letter][0][0]]
                         # Alif could be ommited in definite article and beginning of some words
                         if letter in [u'a', u'A', u'Y']:
-                            if (letter in [u'A'] and letter_1 in [u'w', u'k'] and letter_2 == u'b' and letter1 in [
-                                u'l']):
+                            if letter in [u'A'] and letter_1 in [u'w', u'k'] and letter_2 == u'b' and letter1 in [u'l']:
                                 phones += [[u'a', vowelMap[letter][0][0]]]
                             elif letter in [u'A'] and letter_1 in [u'u', u'i']:
                                 temp = True  # do nothing
@@ -722,8 +723,8 @@ def my_phonetise(text):
                         pronunciation[stressIndex] += u'\''
                     else:
                         if pIndex == 0:
-                            #print('skipped')
-                            #print(pronunciation)
+                            # print('skipped')
+                            # print(pronunciation)
                             pass
                     pIndex += 1
                 # Append utterance pronunciation to utterancesPronunciations
@@ -742,16 +743,16 @@ def my_phonetise(text):
 # -----------------------------------------------------------------------------------------------------
 # Read input file--------------------------------------------------------------------------------------
 # -----------------------------------------------------------------------------------------------------
-if __name__ == '__main__':
-    try:
-        inputFileName = sys.argv[1]
-    except:
-        print("No input file provided")
-        sys.exit()
 
-    inputFile = open(inputFileName, mode='r', encoding='utf-8')
-    (utterancesPronuncationsWithBoundaries, utterancesPronuncations, dict) = phonetise(inputFile.read())
-    inputFile.close()
+
+parser = argparse.ArgumentParser(description='extracts dictionary and phones from a corpus')
+parser.add_argument('-i', '--input', type=argparse.FileType(mode='r', encoding='utf-8'),
+                    help='input file', required=True)
+
+if __name__ == '__main__':
+    args = parser.parse_args()
+    inputFile = args.input.read()
+    (utterancesPronuncationsWithBoundaries, utterancesPronuncations, dict) = phonetise(inputFile)
 
     # ----------------------------------------------------------------------------
     # Save output-----------------------------------------------------------------

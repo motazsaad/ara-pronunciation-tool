@@ -1,6 +1,6 @@
 def find_stress_index(sequence):  # Find stress syllable in word starting from "start"
     if sequence == u'' or len(sequence) == 0:
-        return ''
+        return -1
     print(sequence)
     consonants = [
         "r", "g", "y", "G",
