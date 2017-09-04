@@ -6,6 +6,8 @@ This code  is based on https://github.com/nawarhalabi/Arabic-Phonetiser
 
 Modifications mainly make the code in https://github.com/nawarhalabi/Arabic-Phonetiser compatible with python 3, and provide easy to use cmd tool to build the pronunciation dictionary. 
 
+The pronounciation is generated based on Buckwalter transliteration
+see https://en.wikipedia.org/wiki/Buckwalter_transliteration and http://www.qamus.org/transliteration.htm for more information 
 
 
 ```

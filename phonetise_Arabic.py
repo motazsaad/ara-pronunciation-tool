@@ -378,8 +378,7 @@ def phonetise(text):
                                     phones += [vowelMap[letter][0][0]]
                         # Alif could be ommited in definite article and beginning of some words
                         if letter in [u'a', u'A', u'Y']:
-                            if (letter in [u'A'] and letter_1 in [u'w', u'k'] and letter_2 == u'b' and letter1 in [
-                                u'l']):
+                            if letter in [u'A'] and letter_1 in [u'w', u'k'] and letter_2 == u'b' and letter1 in [u'l']:
                                 phones += [[u'a', vowelMap[letter][0][0]]]
                             elif letter in [u'A'] and letter_1 in [u'u', u'i']:
                                 temp = True  # do nothing
@@ -757,17 +756,19 @@ if __name__ == '__main__':
     # ----------------------------------------------------------------------------
     # Save output-----------------------------------------------------------------
     # ----------------------------------------------------------------------------
+    file_prefix, ext = args.input.name.split('.')
+    file_prefix = file_prefix + "-"
     # Save Utterances pronunciations
-    outFile = open('utterance-pronunciations.txt', mode='w', encoding='utf-8')
+    outFile = open(file_prefix + 'utterance-pronunciations.txt', mode='w', encoding='utf-8')
     outFile.write(u"\n".join(utterancesPronuncations))
     outFile.close()
     # Save Utterances pronunciations (with wordboundaries)
-    outFile = open('utterance-pronunciations-with-boundaries.txt', mode='w', encoding='utf-8')
+    outFile = open(file_prefix + 'utterance-pronunciations-with-boundaries.txt', mode='w', encoding='utf-8')
     outFile.write(u"\n".join(utterancesPronuncationsWithBoundaries))
     outFile.close()
 
     # Save Pronunciation Dictionary
-    outFile = open('dict', mode='w', encoding='utf-8')
+    outFile = open(file_prefix + '.dict', mode='w', encoding='utf-8')
     outFile.write(dict.rstrip())
     outFile.close()
 
