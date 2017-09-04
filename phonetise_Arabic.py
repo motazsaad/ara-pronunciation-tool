@@ -738,6 +738,225 @@ def my_phonetise(text):
     return utterances_pronunciations_with_boundaries, utterances_pronunciations, result
 
 
+def phonetise_word(arabic_word):
+    result = ''  # Pronunciations Dictionary
+    utterance = arabicToBuckwalter(arabic_word)
+    # print(u"phoetising utterance")
+    # print(utterance)
+    # Do some normalisation work and split utterance to words
+    utterance = utterance.replace(u'AF', u'F')
+    utterance = utterance.replace(u'\u0640', u'')
+    utterance = utterance.replace(u'o', u'')
+    utterance = utterance.replace(u'aA', u'A')
+    utterance = utterance.replace(u'aY', u'Y')
+    utterance = re.sub(u'([^\\-]) A', u'\\1 ', utterance)
+    utterance = utterance.replace(u'F', u'an')
+    utterance = utterance.replace(u'N', u'un')
+    utterance = utterance.replace(u'K', u'in')
+    utterance = utterance.replace(u'|', u'>A')
+
+    # Deal with Hamza types that when not followed by a short vowel letter,
+    # this short vowel is added automatically
+    utterance = re.sub(u'^Ai', u'<i', utterance)
+    utterance = re.sub(u'^Aa', u'>a', utterance)
+    utterance = re.sub(u'^Au', u'>u', utterance)
+    utterance = re.sub(u'Ai', u'<i', utterance)
+    utterance = re.sub(u'Aa', u'>a', utterance)
+    utterance = re.sub(u'Au', u'>u', utterance)
+    utterance = re.sub(u'^Al', u'>al', utterance)
+    utterance = re.sub(u' - Al', u' - >al', utterance)
+    utterance = re.sub(u'^- Al', u'- >al', utterance)
+    utterance = re.sub(u'^>([^auAw])', u'>a\\1', utterance)
+    utterance = re.sub(u' >([^auAw ])', u' >a\\1', utterance)
+    utterance = re.sub(u'<([^i])', u'<i\\1', utterance)
+    utterance = re.sub(u' A([^aui])', u' \\1', utterance)
+    utterance = re.sub(u'^A([^aui])', u'\\1', utterance)
+
+    word = utterance
+
+    pronunciations = []  # Start with empty set of possible pronunciations of current word
+    # Add fixed irregular pronunciations if possible
+    result = isFixedWord(word, result, word, pronunciations)
+
+    emphaticContext = False  # Indicates whether current character is in an emphatic context or not. Starts with False
+    word = u'bb' + word + u'ee'  # This is the end/beginning of word symbol. just for convenience
+
+    phones = []  # Empty list which will hold individual possible word's pronunciation
+
+    # -----------------------------------------------------------------------------------
+    # MAIN LOOP: here is where the Modern Standard Arabic phonetisation rule-set starts--
+    # -----------------------------------------------------------------------------------
+    for index in range(2, len(word) - 2):
+        letter = word[index]  # Current Character
+        letter1 = word[index + 1]  # Next Character
+        letter2 = word[index + 2]  # Next-Next Character
+        letter_1 = word[index - 1]  # Previous Character
+        letter_2 = word[index - 2]  # Before Previous Character
+        # ----------------------------------------------------------------------------------------------------------------
+        if (letter in consonants + [u'w', u'y'] and not letter in emphatics + [
+            u'r'""", u'l'"""]):  # non-emphatic consonants (except for Lam and Ra) change emphasis back to False
+            emphaticContext = False
+        if letter in emphatics:  # Emphatic consonants change emphasis context to True
+            emphaticContext = True
+        # If following letter is backward emphatic, emphasis state is set to True
+        if letter1 in emphatics and not letter1 in forwardEmphatics:
+            emphaticContext = True
+        # ----------------------------------------------------------------------------------------------------------------
+        # ----------------------------------------------------------------------------------------------------------------
+        if letter in unambiguousConsonantMap:  # Unambiguous consonant phones. These map to a predetermined phoneme
+            phones += [unambiguousConsonantMap[letter]]
+        # ----------------------------------------------------------------------------------------------------------------
+        if letter == u'l':  # Lam is a consonant which requires special treatment
+            if ((not letter1 in diacritics and not letter1 in vowelMap)
+                and letter2 in [u'~']
+                and ((letter_1 in [u'A', u'l', u'b']) or (
+                        # Lam could be omitted in definite article (sun letters)
+                                letter_1 in diacritics and letter_2 in [u'A', u'l', u'b']))):
+                phones += [ambiguousConsonantMap[u'l'][1]]  # omit
+            else:
+                phones += [ambiguousConsonantMap[u'l'][0]]  # do not omit
+        # ----------------------------------------------------------------------------------------------------------------
+        # shadda just doubles the letter before it
+        if letter == u'~' and letter_1 not in [u'w', u'y'] and len(phones) > 0:
+            phones[-1] += phones[-1]
+        # ----------------------------------------------------------------------------------------------------------------
+        if letter == u'|':  # Madda only changes based in emphaticness
+            if emphaticContext:
+                phones += [maddaMap[u'|'][1]]
+            else:
+                phones += [maddaMap[u'|'][0]]
+        # ----------------------------------------------------------------------------------------------------------------
+        if letter == u'p':  # Ta' marboota is determined by the following if it is a diacritic or not
+            if letter1 in diacritics:
+                phones += [ambiguousConsonantMap[u'p'][0]]
+            else:
+                phones += [ambiguousConsonantMap[u'p'][1]]
+        # ----------------------------------------------------------------------------------------------------------------
+        if letter in vowelMap:
+            # Waw and Ya are complex they could be consonants or vowels and their gemination is complex as
+            # it could be a combination of a vowel and consonants
+            if letter in [u'w', u'y']:
+                if (letter1 in diacriticsWithoutShadda + [u'A', u'Y'] or (
+                                letter1 in [u'w', u'y'] and not letter2 in diacritics + [u'A', u'w',
+                                                                                         u'y']) or (
+                                letter_1 in diacriticsWithoutShadda and letter1 in consonants + [u'e'])):
+                    if ((letter in [u'w'] and letter_1 in [u'u'] and not letter1 in [u'a', u'i', u'A',
+                                                                                     u'Y']) or (
+                                        letter in [u'y'] and letter_1 in [u'i'] and not letter1 in [u'a',
+                                                                                                    u'u',
+                                                                                                    u'A',
+                                                                                                    u'Y'])):
+                        if emphaticContext:
+                            phones += [vowelMap[letter][1][0]]
+                        else:
+                            phones += [vowelMap[letter][0][0]]
+                    else:
+                        if letter1 in [u'A'] and letter in [u'w'] and letter2 in [u'e']:
+                            phones += [[vowelMap[letter][0][0], ambiguousConsonantMap[letter]]]
+                        else:
+                            phones += [ambiguousConsonantMap[letter]]
+                elif letter1 in [u'~']:
+                    if (letter_1 in [u'a'] or (letter in [u'w'] and letter_1 in [u'i', u'y']) or (
+                                    letter in [u'y'] and letter_1 in [u'w', u'u'])):
+                        phones += [ambiguousConsonantMap[letter], ambiguousConsonantMap[letter]]
+                    else:
+                        phones += [vowelMap[letter][0][0], ambiguousConsonantMap[letter]]
+                else:  # Waws and Ya's at the end of the word could be shortened
+                    if emphaticContext:
+                        if (letter_1 in consonants + [u'u', u'i'] and letter1 in [u'e']):
+                            phones += [[vowelMap[letter][1][0], vowelMap[letter][1][0][1:]]]
+                        else:
+                            phones += [vowelMap[letter][1][0]]
+                    else:
+                        if letter_1 in consonants + [u'u', u'i'] and letter1 in [u'e']:
+                            phones += [[vowelMap[letter][0][0], vowelMap[letter][0][0][1:]]]
+                        else:
+                            phones += [vowelMap[letter][0][0]]
+            # Kasra and Damma could be mildened if before a final silent consonant
+            if letter in [u'u', u'i']:
+                if emphaticContext:
+                    if ((letter1 in unambiguousConsonantMap or letter1 == u'l') and letter2 == u'e' and len(
+                            word) > 7):
+                        phones += [vowelMap[letter][1][1]]
+                    else:
+                        phones += [vowelMap[letter][1][0]]
+                else:
+                    if ((letter1 in unambiguousConsonantMap or letter1 == u'l') and letter2 == u'e' and len(
+                            word) > 7):
+                        phones += [vowelMap[letter][0][1]]
+                    else:
+                        phones += [vowelMap[letter][0][0]]
+            # Alif could be ommited in definite article and beginning of some words
+            if letter in [u'a', u'A', u'Y']:
+                if letter in [u'A'] and letter_1 in [u'w', u'k'] and letter_2 == u'b' and letter1 in [u'l']:
+                    phones += [[u'a', vowelMap[letter][0][0]]]
+                elif letter in [u'A'] and letter_1 in [u'u', u'i']:
+                    temp = True  # do nothing
+                # Waw al jama3a: The Alif after is optional
+                elif letter in [u'A'] and letter_1 in [u'w'] and letter1 in [u'e']:
+                    phones += [[vowelMap[letter][0][1], vowelMap[letter][0][0]]]
+                elif letter in [u'A', u'Y'] and letter1 in [u'e']:
+                    if emphaticContext:
+                        phones += [[vowelMap[letter][1][0], vowelMap[u'a'][1]]]
+                    else:
+                        phones += [[vowelMap[letter][0][0], vowelMap[u'a'][0]]]
+                else:
+                    if emphaticContext:
+                        phones += [vowelMap[letter][1][0]]
+                    else:
+                        phones += [vowelMap[letter][0][0]]
+    # ----------------------------------------------------------------------
+    # End of main loop -----------------------------------------------------
+    # ----------------------------------------------------------------------
+    possibilities = 1  # Holds the number of possible pronunciations of a word
+
+    # count the number of possible pronunciations
+    for letter in phones:
+        if isinstance(letter, list):
+            possibilities = possibilities * len(letter)
+
+    # Generate all possible pronunciations
+    for i in range(0, possibilities):
+        pronunciations.append([])
+        iterations = 1
+        for index, letter in enumerate(phones):
+            if isinstance(letter, list):
+                curIndex = int(i / iterations) % len(letter)
+                if letter[curIndex] != u'':
+                    pronunciations[-1].append(letter[curIndex])
+                iterations = iterations * len(letter)
+            else:
+                if letter != u'':
+                    pronunciations[-1].append(letter)
+
+    # Iterate through each pronunciation to perform some house keeping. And append pronunciation to dictionary
+    # 1- Remove duplicate vowels
+    # 2- Remove duplicate y and w
+    for pronunciation in pronunciations:
+        prevLetter = u''
+        toDelete = []
+        for i in range(0, len(pronunciation)):
+            letter = pronunciation[i]
+            # Delete duplicate consecutive vowels
+            if (letter in [u'aa', u'uu0', u'ii0', u'AA', u'UU0',
+                           u'II0'] and prevLetter.lower() == letter[
+                                                             1:].lower()):
+                toDelete.append(i - 1)
+                pronunciation[i] = pronunciation[i - 1][0] + pronunciation[i - 1]
+            if letter in [u'u0', u'i0'] and prevLetter.lower() == letter.lower():  # Delete duplicates
+                toDelete.append(i - 1)
+                pronunciation[i] = pronunciation[i - 1]
+            if letter in [u'y', u'w'] and prevLetter == letter:  # delete duplicate
+                pronunciation[i - 1] += pronunciation[i - 1]
+                toDelete.append(i);
+            if letter in [u'a'] and prevLetter == letter:  # delete duplicate
+                toDelete.append(i);
+            prevLetter = letter
+        for i in reversed(range(0, len(toDelete))):
+            del (pronunciation[toDelete[i]])
+        result += word[2:-2] + u' ' + u' '.join(pronunciation) + u'\n'
+
+    return pronunciations
 
 # -----------------------------------------------------------------------------------------------------
 # Read input file--------------------------------------------------------------------------------------
