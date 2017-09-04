@@ -1,9 +1,8 @@
 import argparse
+
 from alphabet_detector import AlphabetDetector
 
 import phonetise_Arabic
-import phonetise_Buckwalter
-
 from arutils import arabic_utils
 
 parser = argparse.ArgumentParser(description='convert dict to cmu dict format')
@@ -35,7 +34,7 @@ if __name__ == '__main__':
 
     print('writing dic file')
     with open(proj_name + '.dic', mode='w', encoding='utf-8') as dict_writer:
-        for w, ph in cmu_dict.items():
+        for w, ph in sorted(cmu_dict.items()):
             if len(ph) == 1:
                 dict_writer.write('{}\t\t{}\n'.format(w, ph.pop()))
             else:

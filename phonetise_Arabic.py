@@ -1,12 +1,11 @@
 #!/usr/bin/python
 # -*- coding: UTF8 -*-
 
+import argparse
 import os
 import re
 
 import findstress
-
-import argparse
 
 buckwalter = {  # mapping from Arabic script to Buckwalter
     u'\u0628': u'b', u'\u0630': u'*', u'\u0637': u'T', u'\u0645': u'm',
@@ -739,6 +738,7 @@ def my_phonetise(text):
     return utterances_pronunciations_with_boundaries, utterances_pronunciations, result
 
 
+
 # -----------------------------------------------------------------------------------------------------
 # Read input file--------------------------------------------------------------------------------------
 # -----------------------------------------------------------------------------------------------------
@@ -757,21 +757,25 @@ if __name__ == '__main__':
     # Save output-----------------------------------------------------------------
     # ----------------------------------------------------------------------------
     file_prefix, ext = args.input.name.split('.')
-    file_prefix = file_prefix + "-"
+    file_prefix = file_prefix
     # Save Utterances pronunciations
-    outFile = open(file_prefix + 'utterance-pronunciations.txt', mode='w', encoding='utf-8')
+    print('Save Utterances pronunciations')
+    outFile = open(file_prefix + '-utterance-pronunciations.txt', mode='w', encoding='utf-8')
     outFile.write(u"\n".join(utterancesPronuncations))
     outFile.close()
     # Save Utterances pronunciations (with wordboundaries)
-    outFile = open(file_prefix + 'utterance-pronunciations-with-boundaries.txt', mode='w', encoding='utf-8')
+    print('Save Utterances pronunciations (with wordboundaries)')
+    outFile = open(file_prefix + '-utterance-pronunciations-with-boundaries.txt', mode='w', encoding='utf-8')
     outFile.write(u"\n".join(utterancesPronuncationsWithBoundaries))
     outFile.close()
 
     # Save Pronunciation Dictionary
+    print('Save Pronunciation Dictionary')
     outFile = open(file_prefix + '.dict', mode='w', encoding='utf-8')
     outFile.write(dict.rstrip())
     outFile.close()
 
     # Sort Dictionary
-    os.system("python sortandfilter.py dict")
+    print('Sort Dictionary')
+    os.system("python sortandfilter.py {}.dict".format(file_prefix))
     print('done!')
