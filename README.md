@@ -10,6 +10,19 @@ The pronunciation is generated based on Buckwalter transliteration
 see https://en.wikipedia.org/wiki/Buckwalter_transliteration and http://www.qamus.org/transliteration.htm for more information 
 
 
+
+## test with corpus2cmudict.py on text with diacritics 
+```
+python corpus2cmudict.py -i nawar_corpus_tashkeel.txt -p nawar_bw_tashkeel
+```
+
+## test with corpus2cmudict.py on text without diacritics 
+```
+python corpus2cmudict.py -i nawar_corpus_plain.txt -p nawar_bw_plain
+```
+ 
+ 
+ 
 ## test on text with diacritics 
 ```
 python phonetise_Arabic.py -i nawar_corpus_tashkeel.txt
@@ -26,13 +39,3 @@ python dict2cmudict.py -i dict -p nawar_bw_plain
 
 ```  
 
-## test with corpus2cmudict.py on text with diacritics 
-```
-python corpus2cmudict.py -i nawar_corpus_tashkeel.txt -p nawar_bw_tashkeel
-```
-
-## test with corpus2cmudict.py on text without diacritics 
-```
-python corpus2cmudict.py -i nawar_corpus_plain.txt -p nawar_bw_plain
-```
- 
