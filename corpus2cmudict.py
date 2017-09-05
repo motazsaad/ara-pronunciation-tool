@@ -26,26 +26,27 @@ def corpus2dictionary(corpus, project_name):
         words = sentence.split()
         for word in words:
             pronunciations = phonetise_Arabic.phonetise_word(word)
+            for pronunciation in pronunciations:
+                for phone in pronunciation.split():
+                    phones_list.add(phone)
             clean_word = arabic_utils.remove_diacritics(word)
             if clean_word in pronunciation_dict:
                 for pronunciation in pronunciations:
                     pronunciation_dict[clean_word].add(pronunciation)
             else:
-                pronunciation_dict[clean_word] = {', '.join(pronunciations)}
-                for phone in ' '.join(pronunciations):
-                    phones_list.add(phone)
-
-
+                pronunciation_dict[clean_word] = set()
+                for pronunciation in pronunciations:
+                    pronunciation_dict[clean_word].add(pronunciation)
 
     print('writing dic file')
     with open(proj_name + '.dic', mode='w', encoding='utf-8') as dict_writer:
-        for w, ph in sorted(pronunciation_dict.items()):
-            if len(ph) == 1:
-                dict_writer.write('{}\t\t{}\n'.format(w, ph.pop()))
-            else:
-                dict_writer.write('{}\t\t{}\n'.format(w, ph.pop()))
-                for i, p in enumerate(ph):
-                    dict_writer.write('{}({})\t\t{}\n'.format(w, (i + 1), p))
+        for w, phones in sorted(pronunciation_dict.items()):
+            for i, phone in enumerate(phones):
+                if i == 0:
+                    dict_writer.write('{}\t\t{}\n'.format(w, phone))
+                else:
+                    dict_writer.write('{}({})\t\t{}\n'.format(w, (i + 1), phone))
+
     print('writing phone file')
     with open(proj_name + '.phone', mode='w', encoding='utf-8') as phone_writer:
         for ph in sorted(phones_list):

@@ -526,8 +526,8 @@ def phonetise_word(arabic_word):
     for utterance in utterances:
         utterance_number += 1
         utterances_pronunciations.append('')  # Add empty entry that will hold this utterance's pronuncation
-        utterances_pronunciations_with_boundaries.append(
-            '')  # Add empty entry that will hold this utterance's pronuncation
+        # Add empty entry that will hold this utterance's pronuncation
+        utterances_pronunciations_with_boundaries.append('')
 
         utterance = arabicToBuckwalter(utterance)
         # print(u"phoetising utterance")
@@ -724,7 +724,8 @@ def phonetise_word(arabic_word):
                             if letter != u'':
                                 pronunciations[-1].append(letter)
 
-                # Iterate through each pronunciation to perform some house keeping. And append pronunciation to dictionary
+                # Iterate through each pronunciation to perform some house keeping.
+                # And append pronunciation to dictionary
                 # 1- Remove duplicate vowels
                 # 2- Remove duplicate y and w
                 for pronunciation in pronunciations:
@@ -776,8 +777,11 @@ def phonetise_word(arabic_word):
         # Add sound file name back
         utterances_pronunciations[-1] = utterances_pronunciations[-1].strip() + u" sil"
         utterances_pronunciations_with_boundaries[-1] = utterances_pronunciations_with_boundaries[-1].strip() + u" sil"
-    result = [r for r in result.split('\n') if r.strip()]
-    return result
+    my_pronunciations = set()
+    for r in result.split('\n'):
+        if r.strip() and len(r.split()) >= len(arabic_word):
+            my_pronunciations.add(r)
+    return list(my_pronunciations)
 
 
 
