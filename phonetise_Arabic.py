@@ -779,7 +779,7 @@ def phonetise_word(arabic_word):
         utterances_pronunciations_with_boundaries[-1] = utterances_pronunciations_with_boundaries[-1].strip() + u" sil"
     my_pronunciations = set()
     for r in result.split('\n'):
-        if r.strip() and len(r.split()) >= len(arabic_word):
+        if r.strip() and len(r.split()) >= len(arabic_word):  # discard wrong (short) pronunciations
             my_pronunciations.add(r)
     return list(my_pronunciations)
 
